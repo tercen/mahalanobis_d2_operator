@@ -1,0 +1,123 @@
+{
+  "name": "Mahalanobis D²",
+  "description": "Computes pairwise Mahalanobis D² between group means using pooled, individual, and Anderson (1973) covariance variants.",
+  "tags": [
+    "statistical testing",
+    "multivariate",
+    "distance"
+  ],
+  "authors": [
+    "tercen"
+  ],
+  "urls": [
+    "https://github.com/tercen/mahalanobis_d2_operator"
+  ],
+  "container": "ghcr.io/tercen/mahalanobis_d2_operator:dev",
+  "operatorSpec": {
+    "kind": "OperatorSpec",
+    "ontologyUri": "https://tercen.com/_ontology/tercen",
+    "ontologyVersion": "0.0.1",
+    "inputSpecs": [
+      {
+        "kind": "CrosstabSpec",
+        "metaFactors": [
+          {
+            "kind": "MetaFactor",
+            "name": "Variable",
+            "type": "",
+            "description": "Measurement variables (e.g. FL, RW, CL, CW, BD)",
+            "ontologyMapping": "variable",
+            "crosstabMapping": "row",
+            "cardinality": "1..n",
+            "factors": []
+          },
+          {
+            "kind": "MetaFactor",
+            "name": "Observation",
+            "type": "",
+            "description": "Observation identifier (composite key: sp+sex+index)",
+            "ontologyMapping": "observation",
+            "crosstabMapping": "column",
+            "cardinality": "1..n",
+            "factors": []
+          }
+        ],
+        "axis": [
+          {
+            "kind": "AxisSpec",
+            "metaFactors": [
+              {
+                "kind": "MetaFactor",
+                "name": "Measurement",
+                "type": "double",
+                "description": "Measurement values",
+                "ontologyMapping": "measurement",
+                "crosstabMapping": "y",
+                "cardinality": "1",
+                "factors": []
+              },
+              {
+                "kind": "MetaFactor",
+                "name": "Group",
+                "type": "",
+                "description": "Group factor(s) defining groups for D² computation",
+                "ontologyMapping": "group",
+                "crosstabMapping": "color",
+                "cardinality": "1..n",
+                "factors": []
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "outputSpecsV2": [
+      {
+        "kind": "OperatorJoinSpec",
+        "joinOperators": [
+          {
+            "kind": "JoinOperator",
+            "joinType": "left",
+            "leftPair": {
+              "kind": "ColumnPair",
+              "lColumns": [
+                "Variable",
+                "Observation"
+              ],
+              "rColumns": [
+                "Variable",
+                "Observation"
+              ]
+            },
+            "rightRelation": {
+              "kind": "TableRelation",
+              "attributes": [
+                {
+                  "kind": "Attribute",
+                  "name": "group_i",
+                  "type": "string"
+                },
+                {
+                  "kind": "Attribute",
+                  "name": "group_j",
+                  "type": "string"
+                },
+                {
+                  "kind": "Attribute",
+                  "name": "d_squared",
+                  "type": "double"
+                },
+                {
+                  "kind": "Attribute",
+                  "name": "method",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "properties": []
+}
