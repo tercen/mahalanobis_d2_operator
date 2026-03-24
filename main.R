@@ -6,34 +6,25 @@ suppressPackageStartupMessages({
 
 ctx <- tercenCtx()
 
-if (length(ctx$colors) < 1) stop("At least one color factor is required to define groups.")
+color_names <- unlist(ctx$colors)
+if (length(color_names) < 1) stop("At least one color factor is required to define groups.")
 
-# Get data as matrix: rows = observations (columns zone), cols = variables (rows zone)
+# Get data as matrix: rows = variables (rows zone), cols = observations (columns zone)
 mat <- ctx$as.matrix()
-# mat has nrow = number of row factors (variables), ncol = number of column combinations (observations)
 # Transpose so rows = observations, cols = variables
 mat <- t(mat)
 
-# Get group labels from color factors
-# Build group vector from the .ci (column index) and color factors
-n_obs <- nrow(mat)
-n_var <- ncol(mat)
-
-# Get the color factor values for each observation (column)
-# Each column in the original crosstab is one observation
-# We need to map .ci values to group labels
-ci_values <- rep(0:(ncol(ctx$as.matrix()) - 1), each = 1)
-
-# Get color factor data - colors are axis-level factors
-color_df <- ctx$select(c(".ci", ctx$colors)) %>%
+# Get group labels from color factors (following t-test pattern)
+# Colors are axis-level factors accessible via ctx$select
+color_df <- ctx$select(c(".ci", color_names)) %>%
   distinct(.ci, .keep_all = TRUE) %>%
   arrange(.ci)
 
 # Create composite group label
-if (length(ctx$colors) == 1) {
-  group_vec <- as.character(color_df[[ctx$colors[1]]])
+if (length(color_names) == 1) {
+  group_vec <- as.character(color_df[[color_names[1]]])
 } else {
-  group_vec <- do.call(paste, c(color_df[ctx$colors], list(sep = ".")))
+  group_vec <- do.call(paste, c(as.list(color_df[color_names]), list(sep = ".")))
 }
 
 # Remove rows with NAs
