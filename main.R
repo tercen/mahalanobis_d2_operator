@@ -38,6 +38,19 @@ groups <- unique(group_vec)
 n_groups <- length(groups)
 if (n_groups < 2) stop("At least 2 groups are required for Mahalanobis D².")
 
+# Base-R pseudoinverse via SVD (replaces MASS::ginv)
+pinv <- function(m, tol = .Machine$double.eps^0.5) {
+  s <- svd(m)
+  pos <- s$d > max(tol * s$d[1], 0)
+  if (all(pos)) {
+    s$v %*% (1/s$d * t(s$u))
+  } else if (!any(pos)) {
+    matrix(0, nrow = ncol(m), ncol = nrow(m))
+  } else {
+    s$v[, pos, drop = FALSE] %*% ((1/s$d[pos]) * t(s$u[, pos, drop = FALSE]))
+  }
+}
+
 p <- ncol(mat)  # number of variables
 
 # Compute group statistics
@@ -74,14 +87,14 @@ for (pair in pairs) {
 
   # Method 1: Pooled covariance
   S_pooled_inv <- tryCatch(solve(S_pooled), error = function(e) {
-    MASS::ginv(S_pooled)
+    pinv(S_pooled)
   })
   d2_pooled <- as.numeric(t(mean_diff) %*% S_pooled_inv %*% mean_diff)
 
   # Method 2: Individual (average of two group covariances)
   S_avg <- (group_stats[[g_i]]$cov + group_stats[[g_j]]$cov) / 2
   S_avg_inv <- tryCatch(solve(S_avg), error = function(e) {
-    MASS::ginv(S_avg)
+    pinv(S_avg)
   })
   d2_individual <- as.numeric(t(mean_diff) %*% S_avg_inv %*% mean_diff)
 
@@ -92,7 +105,7 @@ for (pair in pairs) {
   n_j <- group_stats[[g_j]]$n
   S_anderson <- group_stats[[g_i]]$cov / n_i + group_stats[[g_j]]$cov / n_j
   S_anderson_inv <- tryCatch(solve(S_anderson), error = function(e) {
-    MASS::ginv(S_anderson)
+    pinv(S_anderson)
   })
   d2_anderson <- as.numeric(t(mean_diff) %*% S_anderson_inv %*% mean_diff)
 
