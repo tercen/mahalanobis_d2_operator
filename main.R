@@ -2,7 +2,6 @@ suppressPackageStartupMessages({
   library(tercen)
   library(tercenApi)
   library(dplyr)
-  library(tidyr)
 })
 
 ctx <- tercenCtx()
